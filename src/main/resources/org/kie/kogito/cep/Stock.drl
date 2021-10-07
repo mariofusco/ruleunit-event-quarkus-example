@@ -1,0 +1,55 @@
+/**
+ * Copyright 2021 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.kie.kogito.cep;
+unit StockUnit;
+
+import org.kie.kogito.cep.StockTick;
+import org.kie.kogito.cep.ValueDrop;
+
+rule CreateValueDrops when
+    $s1: /stockTicks
+    $s2: /stockTicks[ company == $s1.company, value < $s1.value, this after[1, 100] $s1 ] // over window:length( 2 ) -> doesn't work
+then
+    valueDrops.add( new ValueDrop($s1.getCompany(), $s1.getValue(), $s2.getValue()) );
+end
+
+// TODO: window definition with oopath doesn't work
+// very likely this is because in plain drl the window definition has to go between the pattern and the entry-point as in the
+// example above while the oopath notation, that is internally translated into pattern + entry-point, put the window after the
+// entry-point thus generating that same error that will be obtained by moving the window after the entry-point in plain drl
+
+/*
+rule SmallDepositApprove when
+    $s1: StockTick() from entry-point stockTicks
+    $s2: StockTick( company == $s1.company, value < $s1.value, this after[1, 100] $s1 ) over window:length( 2 ) from entry-point stockTicks
+then
+    valueDrops.add( new ValueDrop($s1.getCompany(), $s1.getValue(), $s2.getValue()) );
+end
+*/
+
+// TODO: at the moment it is not possible to pass arguments to a query invoked through the rule unit instance
+query highestValueDrop(String $company)
+     $s: /valueDrops[ company == $company ]
+     not /valueDrops[ company == $company, dropAmount > $s.dropAmount ]
+end
+
+// this rule temporarily does the work of the former query
+rule FindHighestValueDrop when
+     $s: /valueDrops
+     not /valueDrops[ company == $s.company, dropAmount > $s.dropAmount ]
+then
+     highestDropsByCompany.put($s.getCompany(), $s);
+end
