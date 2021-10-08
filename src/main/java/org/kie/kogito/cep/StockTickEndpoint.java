@@ -29,7 +29,7 @@ public class StockTickEndpoint {
         // TODO: also we probably need a better name than 'workingMemory' ?
         ((AbstractRuleUnitInstance<StockUnit>) instance).workingMemory().getStockTicks().append(stockTick);
 
-        return advanceClockAndFire(instance, stockTick.getTimestamp());
+        return instance.fire();
     }
 
     @POST()
@@ -39,15 +39,11 @@ public class StockTickEndpoint {
     public int batchInsert(@PathParam("ruleUnitId") String ruleUnitId, List<StockTick> stockTicks) {
         RuleUnitInstance<StockUnit> instance = ruleUnitRegistry.lookup(ruleUnitId);
 
-        long maxTimestamp = 0;
         for (StockTick stockTick : stockTicks) {
             ((AbstractRuleUnitInstance<StockUnit>) instance).workingMemory().getStockTicks().append(stockTick);
-            if (stockTick.getTimestamp() > maxTimestamp) {
-                maxTimestamp = stockTick.getTimestamp();
-            }
         }
 
-        return advanceClockAndFire(instance, maxTimestamp);
+        return instance.fire();
     }
 
     @GET()
@@ -58,17 +54,8 @@ public class StockTickEndpoint {
         RuleUnitInstance<StockUnit> instance = ruleUnitRegistry.lookup(ruleUnitId);
 
         // TODO: at the moment it isn't possible to pass arguments to a query
-        //instance.executeQuery("highestValueDrop", ...)
+        // instance.executeQuery("highestValueDrop", ...)
 
         return ((AbstractRuleUnitInstance<StockUnit>) instance).workingMemory().getHighestDropsByCompany().get(company);
      }
-
-    private int advanceClockAndFire(RuleUnitInstance<StockUnit> instance, long timestamp) {
-        SessionPseudoClock clock = instance.getClock();
-        long advanceTime = timestamp - clock.getCurrentTime();
-        if (advanceTime > 0) {
-            clock.advanceTime(advanceTime, TimeUnit.MILLISECONDS);
-        }
-        return instance.fire();
-    }
 }

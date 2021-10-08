@@ -16,7 +16,7 @@ public class StockUnit implements RuleUnitData {
     private Map<String, ValueDrop> highestDropsByCompany = new HashMap<>();
 
     public StockUnit() {
-        this(DataSource.createStream(), DataSource.createStore());
+        this(EventListDataStream.create(), DataSource.createStore());
     }
 
     public StockUnit(DataStream<StockTick> stockTicks, DataStore<ValueDrop> valueDrops) {
