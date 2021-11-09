@@ -7,13 +7,12 @@ import org.kie.kogito.rules.DataSource;
 import org.kie.kogito.rules.DataStore;
 import org.kie.kogito.rules.DataStream;
 import org.kie.kogito.rules.RuleUnitData;
+import org.kie.kogito.rules.units.EventListDataStream;
 
 public class StockUnit implements RuleUnitData {
 
     private DataStream<StockTick> stockTicks;
     private DataStore<ValueDrop> valueDrops;
-
-    private Map<String, ValueDrop> highestDropsByCompany = new HashMap<>();
 
     public StockUnit() {
         this(EventListDataStream.create(), DataSource.createStore());
@@ -30,9 +29,5 @@ public class StockUnit implements RuleUnitData {
 
     public DataStore<ValueDrop> getValueDrops() {
         return valueDrops;
-    }
-
-    public Map<String, ValueDrop> getHighestDropsByCompany() {
-        return highestDropsByCompany;
     }
 }

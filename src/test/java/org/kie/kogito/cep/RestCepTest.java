@@ -70,7 +70,7 @@ public class RestCepTest {
                 .post("/stocks/1")
                 .then()
                 .statusCode(200)
-                .body(equalTo("2"));
+                .body(equalTo("1"));
     }
 
     @Test
@@ -92,7 +92,7 @@ public class RestCepTest {
                 .post("/stocks/3/batch")
                 .then()
                 .statusCode(200)
-                .body(equalTo("3"));
+                .body(equalTo("2"));
 
         given()
                 .when()

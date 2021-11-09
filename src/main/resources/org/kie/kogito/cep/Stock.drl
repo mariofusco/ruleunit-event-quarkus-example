@@ -21,35 +21,13 @@ import org.kie.kogito.cep.ValueDrop;
 
 rule CreateValueDrops when
     $s1: /stockTicks
-    $s2: /stockTicks[ company == $s1.company, value < $s1.value, this after[1, 100] $s1 ] // over window:length( 2 ) -> doesn't work
+    $s2: /stockTicks[ company == $s1.company, value < $s1.value, this after[1, 100] $s1 ] over window:length( 2 )
 then
     valueDrops.add( new ValueDrop($s1.getCompany(), $s1.getValue(), $s2.getValue()) );
 end
-
-// TODO: window definition with oopath doesn't work
-// very likely this is because in plain drl the window definition has to go between the pattern and the entry-point as in the
-// example above while the oopath notation, that is internally translated into pattern + entry-point, put the window after the
-// entry-point thus generating that same error that will be obtained by moving the window after the entry-point in plain drl
-
-/*
-rule SmallDepositApprove when
-    $s1: StockTick() from entry-point stockTicks
-    $s2: StockTick( company == $s1.company, value < $s1.value, this after[1, 100] $s1 ) over window:length( 2 ) from entry-point stockTicks
-then
-    valueDrops.add( new ValueDrop($s1.getCompany(), $s1.getValue(), $s2.getValue()) );
-end
-*/
 
 // TODO: at the moment it is not possible to pass arguments to a query invoked through the rule unit instance
 query highestValueDrop(String $company)
      $s: /valueDrops[ company == $company ]
      not /valueDrops[ company == $company, dropAmount > $s.dropAmount ]
-end
-
-// this rule temporarily does the work of the former query
-rule FindHighestValueDrop when
-     $s: /valueDrops
-     not /valueDrops[ company == $s.company, dropAmount > $s.dropAmount ]
-then
-     highestDropsByCompany.put($s.getCompany(), $s);
 end

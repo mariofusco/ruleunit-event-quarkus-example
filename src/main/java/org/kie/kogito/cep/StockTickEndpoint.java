@@ -27,7 +27,7 @@ public class StockTickEndpoint {
         RuleUnitInstance<StockUnit> instance = ruleUnitRegistry.lookup(ruleUnitId);
         // TODO: It should be possible to access to the access the RuleUnitData from the RuleUnitInstance via public API
         // TODO: also we probably need a better name than 'workingMemory' ?
-        ((AbstractRuleUnitInstance<StockUnit>) instance).workingMemory().getStockTicks().append(stockTick);
+        instance.ruleUnitData().getStockTicks().append(stockTick);
 
         return instance.fire();
     }
@@ -40,7 +40,7 @@ public class StockTickEndpoint {
         RuleUnitInstance<StockUnit> instance = ruleUnitRegistry.lookup(ruleUnitId);
 
         for (StockTick stockTick : stockTicks) {
-            ((AbstractRuleUnitInstance<StockUnit>) instance).workingMemory().getStockTicks().append(stockTick);
+            instance.ruleUnitData().getStockTicks().append(stockTick);
         }
 
         return instance.fire();
@@ -53,9 +53,6 @@ public class StockTickEndpoint {
     public ValueDrop findHighestDrop(@PathParam("ruleUnitId") String ruleUnitId, @PathParam("company") String company) {
         RuleUnitInstance<StockUnit> instance = ruleUnitRegistry.lookup(ruleUnitId);
 
-        // TODO: at the moment it isn't possible to pass arguments to a query
-        // instance.executeQuery("highestValueDrop", ...)
-
-        return ((AbstractRuleUnitInstance<StockUnit>) instance).workingMemory().getHighestDropsByCompany().get(company);
+        return (ValueDrop) instance.executeQuery("highestValueDrop", company).get(0).get("$s");
      }
 }
